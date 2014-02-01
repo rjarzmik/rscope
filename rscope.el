@@ -185,7 +185,7 @@ Must end with a newline.")
   (define-key rscope-list-entry-keymap "q" 'rscope-close-results)
   (define-key rscope-list-entry-keymap " " 'rscope-preview-entry-other-window)
   (define-key rscope-list-entry-keymap (kbd "RET") 'rscope-select-entry-other-window)
-  (define-key rscope-list-entry-keymap (kbd "C-<return>") 'rscope-select-entry-current-window)
+  (define-key rscope-list-entry-keymap (kbd "S-<return>") 'rscope-select-entry-current-window)
   (when (featurep 'outline)
     (define-key rscope-list-entry-keymap "0" (lambda() (interactive) (show-all)))
     (define-key rscope-list-entry-keymap "1" (lambda() (interactive) (hide-sublevels 1)))
@@ -311,7 +311,7 @@ The first hook returning a non nil value wins.")
   "Find all functions calling a function, then functions calling these ones, etc ..."
   (interactive (rscope-interactive
 		(list (cons "Find function's calling hierarchy: " (current-word))
-		      (cons "Depth: " "1"))))
+		      (cons "Depth: " "4"))))
   (rscope-handle-query-call-hierarchy symbol (string-to-number depth)))
 
 (defun rscope-pop-mark()
