@@ -34,7 +34,9 @@
 ;;   Advanced keystrokes:
 ;;     Use SPACE to preview an entry
 ;;     Use Ctr-ENTER to bury result buffer, and replace it by the selected entry
-;;     Use number <N> to develop current leaf's subtree up to Nth level
+;;     Use number <N> to develop all subtrees up to Nth level (0 => expand all)
+;;     Use "+" to expand a collapsed tree
+;;     Use "-" to collapse a tree
 
 ;; Available global commands (bound by default to C-c s [gstCcia])
 ;;
@@ -72,6 +74,8 @@
 ;; MA 02111-1307 USA
 
 ;; http://www.fsf.org/copyleft/gpl.html
+
+(require 'outline nil t)
 
 (defgroup rscope nil
   "Cscope interface for (X)Emacs.
@@ -182,6 +186,14 @@ Must end with a newline.")
   (define-key rscope-list-entry-keymap " " 'rscope-preview-entry-other-window)
   (define-key rscope-list-entry-keymap (kbd "RET") 'rscope-select-entry-other-window)
   (define-key rscope-list-entry-keymap (kbd "C-<return>") 'rscope-select-entry-current-window)
+  (when (featurep 'outline)
+    (define-key rscope-list-entry-keymap "0" (lambda() (interactive) (show-all)))
+    (define-key rscope-list-entry-keymap "1" (lambda() (interactive) (hide-sublevels 1)))
+    (define-key rscope-list-entry-keymap "2" (lambda() (interactive) (hide-sublevels 2)))
+    (define-key rscope-list-entry-keymap "3" (lambda() (interactive) (hide-sublevels 3)))
+    (define-key rscope-list-entry-keymap "4" (lambda() (interactive) (hide-sublevels 4)))
+    (define-key rscope-list-entry-keymap "-" (function hide-subtree))
+    (define-key rscope-list-entry-keymap "+" (function show-subtree)))
   )
 
 (defvar rscope-autoinit-cscope-dir-hooks nil
@@ -808,6 +820,8 @@ call organizer to handle them within resultbuf."
     (kill-buffer rscope-output-buffer-name))
   (let ((result-buf (get-buffer-create rscope-output-buffer-name)))
     (with-current-buffer result-buf
+      (when (featurep 'outline)
+	    (outline-minor-mode))
       (make-local-variable 'preview-buffers)
       (make-local-variable 'preview-already-opened-buffers)
       (setq preview-buffers '()
