@@ -608,17 +608,6 @@ The first hook returning non nil wins."
 	 (rscope-buffer (when dir (rscope-init dir))))
     rscope-buffer))
 
-(defun rscope-autoinit-path-upwards-cscope_out (buffer)
-  "Look the directory tree upwards, and report the first directory containing
-a file named cscope.out."
-  (let (found old-dir (dir (buffer-local-value 'default-directory buffer)))
-    (while (and dir (not found) (not (string= old-dir dir)))
-      (setq old-dir dir)
-      (if (file-readable-p (concat dir "cscope.out"))
-	  (setq found dir)
-	(setq dir (file-name-directory (directory-file-name dir)))))
-    found))
-
 (defun rscope-select-unique-result ()
   "Called when query returned only 1 result, and display window"
   (let (l file-name line-number)
@@ -677,6 +666,52 @@ a file named cscope.out."
 		(setq found (re-search-forward regexp nil t)))
 	      ))
 	  (rscope-finish-result-buffer result-buf)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Cscope automatic finders/generators of cscope database
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun rscope-regenerate-cscope-database (dir &optional args)
+  "Regenerate the cscope.out database from a directory root.
+Only consider *.c and *.h files."
+  (message "Rscope: generating cscope database in : %s" dir)
+  (let ((exit-code
+	 (call-process "sh" nil nil nil "-c"
+		       (format "cd %s && find %s -name '*.[ch]' > cscope.files && cscope -b -q %s"
+			       dir dir (concat args)))))
+    (when (and (numberp exit-code) (= 0 exit-code))
+      (concat dir "/"))))
+
+(defun rscope-autoinit-path-upwards-cscope_out (buffer)
+  "Look the directory tree upwards, and report the first directory containing
+a file named cscope.out."
+  (let (found old-dir (dir (buffer-local-value 'default-directory buffer)))
+    (while (and dir (not found) (not (string= old-dir dir)))
+      (setq old-dir dir)
+      (if (file-readable-p (concat dir "cscope.out"))
+	  (setq found dir)
+	(setq dir (file-name-directory (directory-file-name dir)))))
+    found))
+
+;; Advanced cscope.out generator looking for autotools configure.ac
+(defun rscope-autoinit-path-upwards-configure_ac (buffer)
+  "Look the directory tree upwards, and report the first directory containing
+a file named configure.ac."
+  (let (found old-dir (dir (buffer-local-value 'default-directory buffer)))
+    (while (and dir (not found) (not (string= old-dir dir)))
+      (setq old-dir dir)
+      (if (file-readable-p (concat dir "configure.ac"))
+	  (setq found (rscope-regenerate-cscope-database dir))
+	(setq dir (file-name-directory (directory-file-name dir)))))
+    found))
+
+;; Advanced cscope.out generator looking for git toplevel tree
+(defun rscope-autoinit-git-toplevel (buffer)
+  "If in a git tree, generate the cscope database at git toplevel."
+  (let ((toplevel (with-current-buffer buffer
+		    (replace-regexp-in-string "\n$" ""
+					      (shell-command-to-string "git rev-parse --show-toplevel")))))
+    (when (file-exists-p (directory-file-name toplevel))
+      (rscope-regenerate-cscope-database toplevel))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Cscope process running
@@ -856,8 +891,16 @@ call organizer to handle them within resultbuf."
 ;; By default, ease users life by auto-loading cscope database by some simple
 ;; methods :
 ;;   - directory tree upwards traversal looking for cscope.out file
+
+(add-hook 'rscope-autoinit-cscope-dir-hooks
+	  (function rscope-autoinit-git-toplevel))
+
+(add-hook 'rscope-autoinit-cscope-dir-hooks
+	  (function rscope-autoinit-path-upwards-configure_ac))
+
 (add-hook 'rscope-autoinit-cscope-dir-hooks
 	  (function rscope-autoinit-path-upwards-cscope_out))
+
 (provide 'rscope)
 ;;; rscope.el ends here
 
