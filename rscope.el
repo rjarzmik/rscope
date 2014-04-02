@@ -676,7 +676,7 @@ Only consider *.c and *.h files."
   (message "Rscope: generating cscope database in : %s" dir)
   (let ((exit-code
 	 (call-process "sh" nil nil nil "-c"
-		       (format "cd %s && find %s -name '*.[ch]' > cscope.files && cscope -b -q %s"
+		       (format "cd %s && find %s -name '*.[ch]' -o -name '*.cpp' > cscope.files && cscope -b -q %s"
 			       dir dir (concat args)))))
     (when (and (numberp exit-code) (= 0 exit-code))
       (concat dir "/"))))
