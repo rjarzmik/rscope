@@ -249,9 +249,7 @@ The first hook returning a non nil value wins.")
       (accept-process-output process 3)
       (if (looking-at ".*cannot open.*cscope\.out.*")
 	  (progn
-	    (setq buf (get-buffer "*rscope*"))
-	    (if buf
-		(kill-buffer buf))
+	    (when rscope-buffer	(kill-buffer rscope-buffer))
 	    (message "rscope: no cscope.out file here"))
 	(progn
 	  (rscope-wait-for-output)
