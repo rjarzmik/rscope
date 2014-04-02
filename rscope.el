@@ -186,6 +186,7 @@ Must end with a newline.")
   (define-key rscope-list-entry-keymap " " 'rscope-preview-entry-other-window)
   (define-key rscope-list-entry-keymap (kbd "RET") 'rscope-select-entry-other-window)
   (define-key rscope-list-entry-keymap (kbd "S-<return>") 'rscope-select-entry-current-window)
+  (define-key rscope-list-entry-keymap "R" 'rscope-regenerate-database)
   (when (featurep 'outline)
     (define-key rscope-list-entry-keymap "0" (lambda() (interactive) (show-all)))
     (define-key rscope-list-entry-keymap "1" (lambda() (interactive) (hide-sublevels 1)))
@@ -428,6 +429,16 @@ with an optionnal arrow to show what was found."
   (let ((result-buffer (current-buffer)))
     (rscope-clear-previewed-buffers result-buffer)
     (quit-window nil (get-buffer-window result-buffer))))
+
+(defun rscope-regenerate-database ()
+  "Regenerate the cscope database."
+  (interactive)
+  (let* ((result-buffer (current-buffer))
+	 (dir (buffer-local-value 'default-directory result-buffer))
+	 (procbuf (buffer-local-value 'proc-buffer result-buffer)))
+    (rscope-regenerate-cscope-database dir)
+    (kill-buffer result-buffer)
+    (kill-buffer procbuf)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Result buffer helpers: internal navigation, buffer spawning
@@ -859,10 +870,12 @@ call organizer to handle them within resultbuf."
 	    (outline-minor-mode))
       (make-local-variable 'preview-buffers)
       (make-local-variable 'preview-already-opened-buffers)
+      (make-local-variable 'proc-buffer)
       (setq preview-buffers '()
 	    preview-already-opened-buffers '())
       (setq default-directory
 	    (buffer-local-value 'default-directory (get-buffer  procbuf)))
+      (setq proc-buffer procbuf)
       (when header
 	(insert header "\n"))
       (insert rscope-separator-line "\n"))
