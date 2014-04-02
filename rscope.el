@@ -159,20 +159,7 @@ as would have been gotten by using unix basename."
   "Line of text to use as a visual separator.
 Must end with a newline.")
 
-(defvar rscope-first-match nil
-  "The first match result output by cscope.")
-(make-variable-frame-local 'rscope-first-match-point)
-
-(defvar rscope-first-match-point nil
-  "Buffer location of the first match.")
-(make-variable-frame-local 'rscope-first-match-point)
-
 (defvar rscope-action-message nil "The message about what action is taken")
-(make-variable-frame-local 'rscope-action-message)
-
-(defvar rscope-last-file nil
-  "The file referenced by the last line of cscope process output.")
-(make-variable-frame-local 'rscope-last-file)
 
 (defvar rscope-list-entry-keymap nil
   "The keymap used in the *Result* buffer which lists search results.")
@@ -206,9 +193,6 @@ The first hook returning a non nil value wins.")
 (defvar rscope-list-entry-hook nil
   "*Hook run after rscope-list-entry-mode entered.")
 
-(defvar rscope-marker nil
-  "The location from which cscope was invoked.")
-
 (defvar rscope-output-buffer-name "*Result*"
   "The name of the cscope output buffer.")
 
@@ -230,6 +214,12 @@ The first hook returning a non nil value wins.")
     (define-key 'rscope:map "i" 'rscope-find-files-including-file)
     (define-key 'rscope:map "h" 'rscope-find-calling-hierarchy)
     )
+
+(defvar preview-buffers)
+(defvar preview-already-opened-buffers)
+(defvar rscope-level)
+(defvar rscope-auto-open)
+(defvar proc-buffer)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; High-level user usable functions (init + queries)
@@ -261,50 +251,43 @@ The first hook returning a non nil value wins.")
   "Locate a symbol in source code."
   (interactive (rscope-interactive
 		(list (cons "Find this symbol: " (current-word)))))
-  (setq query-command (concat "0" symbol "\n") )
-  (rscope-handle-query query-command))
+  (rscope-handle-query (concat "0" symbol "\n")))
 
 (defun rscope-find-global-definition (symbol)
   "Find a symbol's global definition."
   (interactive (rscope-interactive
 		(list (cons "Find this global definition: " (current-word)))))
-  (setq query-command (concat "1" symbol "\n") )
-  (rscope-handle-query query-command))
+  (rscope-handle-query (concat "1" symbol "\n")))
 
 (defun rscope-find-called-functions (symbol)
   "Display functions called by a function."
   (interactive (rscope-interactive
 		(list (cons "Find functions called by this function: " (current-word)))))
-  (setq query-command (concat "2" symbol "\n") )
-  (rscope-handle-query query-command))
+  (rscope-handle-query (concat "2" symbol "\n")))
 
 (defun rscope-find-functions-calling-this-function (symbol)
   "Display functions calling a function."
   (interactive (rscope-interactive
 		(list (cons "Find functions calling by this function: " (current-word)))))
-  (setq query-command (concat "3" symbol "\n") )
-  (rscope-handle-query query-command))
+  (rscope-handle-query (concat "3" symbol "\n")))
 
 (defun rscope-find-this-text-string (symbol)
   "Locate where a text string occurs."
   (interactive (rscope-interactive
 		(list (cons "Find this text string: " (current-word)))))
-  (setq query-command (concat "4" symbol "\n") )
-  (rscope-handle-query query-command))
+  (rscope-handle-query (concat "4" symbol "\n")))
 
 (defun rscope-find-files-including-file (symbol)
   "Locate all files #including a file."
   (interactive (rscope-interactive
 		(list (cons "Find files #including this file: " (current-word)))))
-  (setq query-command (concat "8" symbol "\n") )
-  (rscope-handle-query query-command))
+  (rscope-handle-query (concat "8" symbol "\n")))
 
 (defun rscope-all-symbol-assignments (symbol)
   "Find all the assignments of the symbol"
   (interactive (rscope-interactive
 		(list (cons "this don't work due to the bug of cscope, Find all assignments of symbol: " (current-word)))))
-  (setq query-command (concat "10" symbol "\n") )
-  (rscope-handle-query query-command))
+  (rscope-handle-query (concat "10" symbol "\n")))
 
 (defun rscope-find-calling-hierarchy (symbol depth)
   "Find all functions calling a function, then functions calling these ones, etc ..."
@@ -500,7 +483,7 @@ The spared buffers are cleaned of his arrow."
 (defun rscope-get-buffer-file-line (file-name line-number &optional arrowp)
   "Display a (file, line) in either the current window or the other window.
 Optionally draw an arrow at the line number."
-  (let (already-opened)
+  (let (already-opened buffer)
     (when (and file-name line-number)
       (setq file-name
 	    (expand-file-name file-name default-directory))
@@ -530,11 +513,13 @@ Returns the buffer containing the file."
     (if selectp
 	(progn
 	  (if otherp (pop-to-buffer buffer) (switch-to-buffer buffer))
-	  (goto-line line-number))
+	  (goto-char (point-min))
+	  (forward-line (1- line-number)))
       (progn
 	(display-buffer buffer)
 	(with-current-buffer buffer
-	  (goto-line line-number))
+	  (goto-char (point-min))
+	  (forward-line (1- line-number)))
 	(setq window (get-buffer-window buffer))
 	(when window (set-window-point window (with-current-buffer buffer (point))))))
     buffer
@@ -571,7 +556,7 @@ Returns the buffer containing the file."
 (defun rscope-mark-buffer-opened (buffer)
   "Mark a buffer which was opened by a rscope action."
   (with-current-buffer buffer
-    (make-variable-frame-local 'rscope-auto-open)
+    (make-local-variable 'rscope-auto-open)
     (setq rscope-auto-open t)
     (add-hook 'first-change-hook (lambda () (setq rscope-auto-open nil)))
     ))
