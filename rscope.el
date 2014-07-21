@@ -234,7 +234,7 @@ The first hook returning a non nil value wins.")
       (if (get-buffer-process buffer-name)
 	  (kill-process (get-buffer-process buffer-name)))
       (setq default-directory dir)
-      (setq process (start-process buffer-name buffer-name
+      (setq process (start-file-process buffer-name buffer-name
 				   "cscope" "-ld" "-f" "cscope.out"))
       (set-process-filter process 'rscope-filter)
       (set-process-query-on-exit-flag process nil)
@@ -669,9 +669,9 @@ The first hook returning non nil wins."
 Only consider *.c and *.h files."
   (message "Rscope: generating cscope database in : %s" dir)
   (let ((exit-code
-	 (call-process "sh" nil nil nil "-c"
-		       (format "cd %s && find %s -name '*.[ch]' -o -name '*.cpp' > cscope.files && cscope -b -q %s"
-			       dir dir (concat args)))))
+	 (process-file-shell-command
+	  (format "find $PWD -name '*.[ch]' -o -name '*.cpp' > cscope.files && cscope -b -q %s"
+		  (concat args)))))
     (when (and (numberp exit-code) (= 0 exit-code))
       (concat dir "/"))))
 
