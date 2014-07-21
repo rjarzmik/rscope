@@ -226,11 +226,13 @@ The first hook returning a non nil value wins.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun rscope-init (dir)
   (interactive "DCscope Initial Directory: ")
-  (let* ((buffer-name (format "*rscope-%s*" dir))
+  (let* ((dir (expand-file-name dir))
+	 (buffer-name (format "*rscope-%s*" dir))
 	 (rscope-buffer (get-buffer-create buffer-name))
 	 process)
     (with-current-buffer rscope-buffer
-      (if (get-process buffer-name) (kill-process (get-process buffer-name)))
+      (if (get-buffer-process buffer-name)
+	  (kill-process (get-buffer-process buffer-name)))
       (setq default-directory dir)
       (setq process (start-process buffer-name buffer-name
 				   "cscope" "-ld" "-f" "cscope.out"))
@@ -577,17 +579,15 @@ and see if a match appears.
 
 By default, if no match found and if exactly one cscope is launched,
 use it."
-  (let* ((filename (buffer-file-name buffer))
-	 (rscope-buffers (rscope-get-cscope-buffers))
-	 (exact-match))
-    (when filename
-      (setq exact-match
-	    (car (delq nil (mapcar (lambda(buf)
-				     (when (string-prefix-p
-					    (expand-file-name (buffer-local-value 'default-directory (get-buffer buf)))
-					    filename)
-				       buf))
-				   rscope-buffers)))))
+  (let* ((rscope-buffers (rscope-get-cscope-buffers))
+	 exact-match)
+    (setq exact-match
+	  (car (delq nil (mapcar (lambda(buf)
+				   (when (string-prefix-p
+					  (expand-file-name (buffer-local-value 'default-directory (get-buffer buf)))
+					  (expand-file-name (buffer-local-value 'default-directory (get-buffer buffer))))
+				     buf))
+				 rscope-buffers))))
     (cond
      (exact-match exact-match)
      ((setq exact-match (rscope-find-cscope-process-run-hooks buffer)) exact-match)
