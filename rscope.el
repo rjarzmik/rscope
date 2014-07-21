@@ -226,7 +226,8 @@ The first hook returning a non nil value wins.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun rscope-init (dir)
   (interactive "DCscope Initial Directory: ")
-  (let* ((buffer-name (format "*rscope-%s*" dir))
+  (let* ((dir (expand-file-name dir))
+	 (buffer-name (format "*rscope-%s*" dir))
 	 (rscope-buffer (get-buffer-create buffer-name))
 	 process)
     (with-current-buffer rscope-buffer
