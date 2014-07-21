@@ -231,7 +231,8 @@ The first hook returning a non nil value wins.")
 	 (rscope-buffer (get-buffer-create buffer-name))
 	 process)
     (with-current-buffer rscope-buffer
-      (if (get-process buffer-name) (kill-process (get-process buffer-name)))
+      (if (get-buffer-process buffer-name)
+	  (kill-process (get-buffer-process buffer-name)))
       (setq default-directory dir)
       (setq process (start-process buffer-name buffer-name
 				   "cscope" "-ld" "-f" "cscope.out"))
