@@ -234,7 +234,7 @@ The first hook returning a non nil value wins.")
       (if (get-buffer-process buffer-name)
 	  (kill-process (get-buffer-process buffer-name)))
       (setq default-directory dir)
-      (setq process (start-process buffer-name buffer-name
+      (setq process (start-file-process buffer-name buffer-name
 				   "cscope" "-ld" "-f" "cscope.out"))
       (set-process-filter process 'rscope-filter)
       (set-process-query-on-exit-flag process nil)
@@ -668,10 +668,11 @@ The first hook returning non nil wins."
   "Regenerate the cscope.out database from a directory root.
 Only consider *.c and *.h files."
   (message "Rscope: generating cscope database in : %s" dir)
-  (let ((exit-code
-	 (call-process "sh" nil nil nil "-c"
-		       (format "cd %s && find %s -name '*.[ch]' -o -name '*.cpp' > cscope.files && cscope -b -q %s"
-			       dir dir (concat args)))))
+  (let* ((default-directory (if (string-suffix-p "/" dir) dir (concat dir "/")))
+	 (exit-code
+	  (process-file-shell-command
+	   (format "find $PWD -name '*.[ch]' -o -name '*.cpp' > cscope.files && cscope -b -q %s"
+		   (concat args)))))
     (when (and (numberp exit-code) (= 0 exit-code))
       (concat dir "/"))))
 
@@ -703,7 +704,16 @@ a file named configure.ac."
   "If in a git tree, generate the cscope database at git toplevel."
   (let ((toplevel (with-current-buffer buffer
 		    (replace-regexp-in-string "\n$" ""
-					      (shell-command-to-string "git rev-parse --show-toplevel")))))
+					      (shell-command-to-string "git rev-parse --show-toplevel"))))
+	(tramp-vec))
+    (when (and (featurep 'tramp) (tramp-tramp-file-p default-directory))
+      (setq tramp-vec (tramp-dissect-file-name default-directory))
+      (setq toplevel (tramp-make-tramp-file-name
+		      (tramp-file-name-method tramp-vec)
+		      (tramp-file-name-user tramp-vec)
+		      (tramp-file-name-host tramp-vec)
+		      toplevel
+		      (tramp-file-name-hop tramp-vec))))
     (when (file-exists-p (directory-file-name toplevel))
       (rscope-regenerate-cscope-database toplevel))))
 
