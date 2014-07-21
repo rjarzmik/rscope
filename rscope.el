@@ -577,17 +577,15 @@ and see if a match appears.
 
 By default, if no match found and if exactly one cscope is launched,
 use it."
-  (let* ((filename (buffer-file-name buffer))
-	 (rscope-buffers (rscope-get-cscope-buffers))
-	 (exact-match))
-    (when filename
-      (setq exact-match
-	    (car (delq nil (mapcar (lambda(buf)
-				     (when (string-prefix-p
-					    (expand-file-name (buffer-local-value 'default-directory (get-buffer buf)))
-					    filename)
-				       buf))
-				   rscope-buffers)))))
+  (let* ((rscope-buffers (rscope-get-cscope-buffers))
+	 exact-match)
+    (setq exact-match
+	  (car (delq nil (mapcar (lambda(buf)
+				   (when (string-prefix-p
+					  (expand-file-name (buffer-local-value 'default-directory (get-buffer buf)))
+					  (expand-file-name (buffer-local-value 'default-directory (get-buffer buffer))))
+				     buf))
+				 rscope-buffers))))
     (cond
      (exact-match exact-match)
      ((setq exact-match (rscope-find-cscope-process-run-hooks buffer)) exact-match)
