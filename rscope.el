@@ -668,10 +668,11 @@ The first hook returning non nil wins."
   "Regenerate the cscope.out database from a directory root.
 Only consider *.c and *.h files."
   (message "Rscope: generating cscope database in : %s" dir)
-  (let ((exit-code
-	 (process-file-shell-command
-	  (format "find $PWD -name '*.[ch]' -o -name '*.cpp' > cscope.files && cscope -b -q %s"
-		  (concat args)))))
+  (let* ((default-directory (if (string-suffix-p "/" dir) dir (concat dir "/")))
+	 (exit-code
+	  (process-file-shell-command
+	   (format "find $PWD -name '*.[ch]' -o -name '*.cpp' > cscope.files && cscope -b -q %s"
+		   (concat args)))))
     (when (and (numberp exit-code) (= 0 exit-code))
       (concat dir "/"))))
 
