@@ -827,7 +827,11 @@ call organizer to handle them within resultbuf."
 
 (defun rscope-results-organize-filename (buf file line-number function-name content)
   "Insert in buffer buf the entry, where all functions are grouped by file."
-  (let (found)
+  (let ((found)
+	(tramp-file
+	 (when (tramp-tramp-file-p default-directory)
+	   (with-parsed-tramp-file-name default-directory tp
+	     (tramp-make-tramp-file-name tp-method tp-user tp-host file)))))
     (with-current-buffer (get-buffer-create buf)
       ;; Find the file in buf if already present
       (goto-char (point-min))
@@ -838,21 +842,25 @@ call organizer to handle them within resultbuf."
       ;;; Else insert the new filename
       (unless found
 	(goto-char (point-max))
-	(rscope-results-insert-filename file 1)
+	(rscope-results-insert-filename (or tramp-file file) 1)
 	(forward-line -1))
       (forward-line +1)
 
       ;;; Insert the found result
       (rscope-results-insert-function function-name 2 line-number content
-				      file)
+				      (or tramp-file file))
       )))
 
 (defun rscope-results-organize-funcs (buf file line-number function-name content)
   "Insert in buffer buf the entry, where all functions are not grouped."
-  (let (found)
+  (let ((found)
+	(tramp-file
+	 (when (tramp-tramp-file-p default-directory)
+	   (with-parsed-tramp-file-name default-directory tp
+	     (tramp-make-tramp-file-name tp-method tp-user tp-host file)))))
     (with-current-buffer buf
       (rscope-results-insert-function function-name rscope-level line-number content
-				      file t))))
+				      (or tramp-file file) t))))
 
 (defun rscope-create-result-buffer (header procbuf)
   (when (get-buffer rscope-output-buffer-name)
