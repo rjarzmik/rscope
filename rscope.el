@@ -667,7 +667,7 @@ Only consider *.c and *.h files."
   (let* ((default-directory (if (string-suffix-p "/" dir) dir (concat dir "/")))
 	 (exit-code
 	  (process-file-shell-command
-	   (format "find $PWD -name '*.[ch]' -o -name '*.cpp' > cscope.files && cscope -b -q %s"
+	   (format "find -name '*.[ch]' -o -name '*.cpp' > cscope.files && cscope -b -q %s"
 		   (concat args)))))
     (when (and (numberp exit-code) (= 0 exit-code))
       (concat dir "/"))))
@@ -825,7 +825,8 @@ call organizer to handle them within resultbuf."
   "Insert in buffer buf the entry, where all functions are grouped by file."
   (let ((found)
 	(tramp-file
-	 (when (tramp-tramp-file-p default-directory)
+	 (when (and (tramp-tramp-file-p default-directory)
+		    (file-name-absolute-p file))
 	   (with-parsed-tramp-file-name default-directory tp
 	     (tramp-make-tramp-file-name tp-method tp-user tp-host file)))))
     (with-current-buffer (get-buffer-create buf)
@@ -851,7 +852,8 @@ call organizer to handle them within resultbuf."
   "Insert in buffer buf the entry, where all functions are not grouped."
   (let ((found)
 	(tramp-file
-	 (when (tramp-tramp-file-p default-directory)
+	 (when (and (tramp-tramp-file-p default-directory)
+		    (file-name-absolute-p file))
 	   (with-parsed-tramp-file-name default-directory tp
 	     (tramp-make-tramp-file-name tp-method tp-user tp-host file)))))
     (with-current-buffer buf
@@ -875,6 +877,7 @@ call organizer to handle them within resultbuf."
       (setq proc-buffer procbuf)
       (when header
 	(insert header "\n"))
+      (insert (format "From: %s\n" default-directory))
       (insert rscope-separator-line "\n"))
     result-buf))
 
