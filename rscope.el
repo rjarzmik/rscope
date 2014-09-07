@@ -24,7 +24,7 @@
 ;;   M-x rscope-find-this-symbol
 ;;     Find a symbol from the database.
 
-;; Result buffer navigation (*Result*)
+;; Result buffer navigation (*rscope-result*)
 ;;   Normal keystrokes :
 ;;     Use "n" to navigate to next entry in results
 ;;     Use "p" to navigate to previsous entry in results
@@ -162,7 +162,7 @@ Must end with a newline.")
 (defvar rscope-action-message nil "The message about what action is taken")
 
 (defvar rscope-list-entry-keymap nil
-  "The keymap used in the *Result* buffer which lists search results.")
+  "The keymap used in the *rscope-result* buffer which lists search results.")
 (if rscope-list-entry-keymap
     nil
   (setq rscope-list-entry-keymap (make-keymap))
@@ -193,7 +193,7 @@ The first hook returning a non nil value wins.")
 (defvar rscope-list-entry-hook nil
   "*Hook run after rscope-list-entry-mode entered.")
 
-(defvar rscope-output-buffer-name "*Result*"
+(defvar rscope-output-buffer-name "*rscope-result*"
   "The name of the cscope output buffer.")
 
 (defvar rscope-marker-ring-length 30 )
@@ -349,13 +349,13 @@ As a side effect, rscope-action-message is set."
   "Display the entry at point in current window.
 Open a new buffer if necessary."
   (interactive)
-  (apply 'rscope-display-file-line
+  (apply 'rscope-display-file
 	 (append (rscope-get-relative-entry (current-buffer) 0) nil)))
 
 (defun rscope-display-entry-other-window ()
   (interactive)
   "Display the entry at point in other window, without loosing selection."
-  (apply 'rscope-display-file-line
+  (apply 'rscope-display-file
 	 (append (rscope-get-relative-entry (current-buffer) 0) '(t nil)))
   )
 
@@ -365,7 +365,7 @@ display it in the current window replacing the result buffer."
   (interactive)
   (let ((result-buffer (current-buffer))
 	(buffer
-	 (apply 'rscope-display-file-line
+	 (apply 'rscope-display-file
 		(append (rscope-get-relative-entry (current-buffer) 0) '(nil t)))))
     (rscope-clear-previewed-buffers result-buffer buffer)
     ))
@@ -375,7 +375,7 @@ display it in the current window replacing the result buffer."
 display it in the other window, and bury the result buffer."
   (interactive)
   (let* ((result-buffer (current-buffer))
-	 (buffer (apply 'rscope-display-file-line
+	 (buffer (apply 'rscope-display-file
 			(append (rscope-get-relative-entry result-buffer 0) '(t t)))))
     (quit-window nil (get-buffer-window result-buffer))
     (rscope-clear-previewed-buffers result-buffer buffer)
@@ -390,7 +390,7 @@ with an optionnal arrow to show what was found."
 	  file (nth 0 file-line)
 	  already-opened (and (get-file-buffer file)
 			      (not (member (get-file-buffer file) preview-buffers)))
-	  buffer (apply 'rscope-display-file-line (append file-line '(t nil t))))
+	  buffer (apply 'rscope-display-file (append file-line '(t nil t))))
     (push buffer preview-buffers)
     (when already-opened
       (push buffer preview-already-opened-buffers))
@@ -482,11 +482,11 @@ The spared buffers are cleaned of his arrow."
       (setq preview-already-opened-buffers '()))
     ))
 
-(defun rscope-get-buffer-file-line (file-name line-number &optional arrowp)
-  "Display a (file, line) in either the current window or the other window.
+(defun rscope-get-buffer-file (file-name &optional line-number arrowp)
+  "Display a file at line line-number in either the current window or the other window.
 Optionally draw an arrow at the line number."
   (let (already-opened buffer)
-    (when (and file-name line-number)
+    (when file-name
       (setq file-name
 	    (expand-file-name file-name default-directory))
       (unless (file-readable-p file-name)
@@ -497,31 +497,27 @@ Optionally draw an arrow at the line number."
       (with-current-buffer buffer
 	(when (not already-opened)
 	  (rscope-mark-buffer-opened buffer))
-	(goto-char (point-min))
-	(forward-line (1- line-number))
-	(when (and rscope-allow-arrow-overlays arrowp)
-	  (set-marker overlay-arrow-position (point))))
+	(when line-number
+	  (goto-char (point-min))
+	  (forward-line (1- line-number))
+	  (when (and rscope-allow-arrow-overlays arrowp)
+	    (set-marker overlay-arrow-position (point)))))
       )
     buffer
     ))
 
-(defun rscope-display-file-line (file-name line-number &optional otherp selectp arrowp)
-  "Display a (file, line) in either the current window or the other window.
+(defun rscope-display-file (file-name &optional line-number otherp selectp arrowp)
+  "Display a file at line line-number in either the current window or the other window.
 If selectp, select the buffer. If arrowp, draw an arrow on the line number
 on this buffer for the selected entry.
+If line-number is nil, file is displayed without changing current line.
 Returns the buffer containing the file."
   (let (window
-	(buffer (rscope-get-buffer-file-line file-name line-number arrowp)))
+	(buffer (rscope-get-buffer-file file-name line-number arrowp)))
     (if selectp
-	(progn
-	  (if otherp (pop-to-buffer buffer) (switch-to-buffer buffer))
-	  (goto-char (point-min))
-	  (forward-line (1- line-number)))
+	(if otherp (pop-to-buffer buffer) (switch-to-buffer buffer))
       (progn
 	(display-buffer buffer)
-	(with-current-buffer buffer
-	  (goto-char (point-min))
-	  (forward-line (1- line-number)))
 	(setq window (get-buffer-window buffer))
 	(when window (set-window-point window (with-current-buffer buffer (point))))))
     buffer
@@ -671,7 +667,7 @@ Only consider *.c and *.h files."
   (let* ((default-directory (if (string-suffix-p "/" dir) dir (concat dir "/")))
 	 (exit-code
 	  (process-file-shell-command
-	   (format "find $PWD -name '*.[ch]' -o -name '*.cpp' > cscope.files && cscope -b -q %s"
+	   (format "find -name '*.[ch]' -o -name '*.cpp' > cscope.files && cscope -b -q %s"
 		   (concat args)))))
     (when (and (numberp exit-code) (= 0 exit-code))
       (concat dir "/"))))
@@ -829,7 +825,8 @@ call organizer to handle them within resultbuf."
   "Insert in buffer buf the entry, where all functions are grouped by file."
   (let ((found)
 	(tramp-file
-	 (when (tramp-tramp-file-p default-directory)
+	 (when (and (tramp-tramp-file-p default-directory)
+		    (file-name-absolute-p file))
 	   (with-parsed-tramp-file-name default-directory tp
 	     (tramp-make-tramp-file-name tp-method tp-user tp-host file)))))
     (with-current-buffer (get-buffer-create buf)
@@ -855,7 +852,8 @@ call organizer to handle them within resultbuf."
   "Insert in buffer buf the entry, where all functions are not grouped."
   (let ((found)
 	(tramp-file
-	 (when (tramp-tramp-file-p default-directory)
+	 (when (and (tramp-tramp-file-p default-directory)
+		    (file-name-absolute-p file))
 	   (with-parsed-tramp-file-name default-directory tp
 	     (tramp-make-tramp-file-name tp-method tp-user tp-host file)))))
     (with-current-buffer buf
@@ -879,6 +877,7 @@ call organizer to handle them within resultbuf."
       (setq proc-buffer procbuf)
       (when header
 	(insert header "\n"))
+      (insert (format "From: %s\n" default-directory))
       (insert rscope-separator-line "\n"))
     result-buf))
 
