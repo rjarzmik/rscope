@@ -349,13 +349,13 @@ As a side effect, rscope-action-message is set."
   "Display the entry at point in current window.
 Open a new buffer if necessary."
   (interactive)
-  (apply 'rscope-display-file-line
+  (apply 'rscope-display-file
 	 (append (rscope-get-relative-entry (current-buffer) 0) nil)))
 
 (defun rscope-display-entry-other-window ()
   (interactive)
   "Display the entry at point in other window, without loosing selection."
-  (apply 'rscope-display-file-line
+  (apply 'rscope-display-file
 	 (append (rscope-get-relative-entry (current-buffer) 0) '(t nil)))
   )
 
@@ -365,7 +365,7 @@ display it in the current window replacing the result buffer."
   (interactive)
   (let ((result-buffer (current-buffer))
 	(buffer
-	 (apply 'rscope-display-file-line
+	 (apply 'rscope-display-file
 		(append (rscope-get-relative-entry (current-buffer) 0) '(nil t)))))
     (rscope-clear-previewed-buffers result-buffer buffer)
     ))
@@ -375,7 +375,7 @@ display it in the current window replacing the result buffer."
 display it in the other window, and bury the result buffer."
   (interactive)
   (let* ((result-buffer (current-buffer))
-	 (buffer (apply 'rscope-display-file-line
+	 (buffer (apply 'rscope-display-file
 			(append (rscope-get-relative-entry result-buffer 0) '(t t)))))
     (quit-window nil (get-buffer-window result-buffer))
     (rscope-clear-previewed-buffers result-buffer buffer)
@@ -390,7 +390,7 @@ with an optionnal arrow to show what was found."
 	  file (nth 0 file-line)
 	  already-opened (and (get-file-buffer file)
 			      (not (member (get-file-buffer file) preview-buffers)))
-	  buffer (apply 'rscope-display-file-line (append file-line '(t nil t))))
+	  buffer (apply 'rscope-display-file (append file-line '(t nil t))))
     (push buffer preview-buffers)
     (when already-opened
       (push buffer preview-already-opened-buffers))
@@ -482,11 +482,11 @@ The spared buffers are cleaned of his arrow."
       (setq preview-already-opened-buffers '()))
     ))
 
-(defun rscope-get-buffer-file-line (file-name line-number &optional arrowp)
-  "Display a (file, line) in either the current window or the other window.
+(defun rscope-get-buffer-file (file-name &optional line-number arrowp)
+  "Display a file at line line-number in either the current window or the other window.
 Optionally draw an arrow at the line number."
   (let (already-opened buffer)
-    (when (and file-name line-number)
+    (when file-name
       (setq file-name
 	    (expand-file-name file-name default-directory))
       (unless (file-readable-p file-name)
@@ -497,31 +497,27 @@ Optionally draw an arrow at the line number."
       (with-current-buffer buffer
 	(when (not already-opened)
 	  (rscope-mark-buffer-opened buffer))
-	(goto-char (point-min))
-	(forward-line (1- line-number))
-	(when (and rscope-allow-arrow-overlays arrowp)
-	  (set-marker overlay-arrow-position (point))))
+	(when line-number
+	  (goto-char (point-min))
+	  (forward-line (1- line-number))
+	  (when (and rscope-allow-arrow-overlays arrowp)
+	    (set-marker overlay-arrow-position (point)))))
       )
     buffer
     ))
 
-(defun rscope-display-file-line (file-name line-number &optional otherp selectp arrowp)
-  "Display a (file, line) in either the current window or the other window.
+(defun rscope-display-file (file-name &optional line-number otherp selectp arrowp)
+  "Display a file at line line-number in either the current window or the other window.
 If selectp, select the buffer. If arrowp, draw an arrow on the line number
 on this buffer for the selected entry.
+If line-number is nil, file is displayed without changing current line.
 Returns the buffer containing the file."
   (let (window
-	(buffer (rscope-get-buffer-file-line file-name line-number arrowp)))
+	(buffer (rscope-get-buffer-file file-name line-number arrowp)))
     (if selectp
-	(progn
-	  (if otherp (pop-to-buffer buffer) (switch-to-buffer buffer))
-	  (goto-char (point-min))
-	  (forward-line (1- line-number)))
+	(if otherp (pop-to-buffer buffer) (switch-to-buffer buffer))
       (progn
 	(display-buffer buffer)
-	(with-current-buffer buffer
-	  (goto-char (point-min))
-	  (forward-line (1- line-number)))
 	(setq window (get-buffer-window buffer))
 	(when window (set-window-point window (with-current-buffer buffer (point))))))
     buffer
