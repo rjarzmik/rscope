@@ -24,7 +24,7 @@
 ;;   M-x rscope-find-this-symbol
 ;;     Find a symbol from the database.
 
-;; Result buffer navigation (*Result*)
+;; Result buffer navigation (*rscope-result*)
 ;;   Normal keystrokes :
 ;;     Use "n" to navigate to next entry in results
 ;;     Use "p" to navigate to previsous entry in results
@@ -162,7 +162,7 @@ Must end with a newline.")
 (defvar rscope-action-message nil "The message about what action is taken")
 
 (defvar rscope-list-entry-keymap nil
-  "The keymap used in the *Result* buffer which lists search results.")
+  "The keymap used in the *rscope-result* buffer which lists search results.")
 (if rscope-list-entry-keymap
     nil
   (setq rscope-list-entry-keymap (make-keymap))
@@ -193,7 +193,7 @@ The first hook returning a non nil value wins.")
 (defvar rscope-list-entry-hook nil
   "*Hook run after rscope-list-entry-mode entered.")
 
-(defvar rscope-output-buffer-name "*Result*"
+(defvar rscope-output-buffer-name "*rscope-result*"
   "The name of the cscope output buffer.")
 
 (defvar rscope-marker-ring-length 30 )
