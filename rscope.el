@@ -319,6 +319,7 @@ The first hook returning a non nil value wins.")
 	  (when old-buffer-killable (kill-buffer old-buffer))
 	  (switch-to-buffer marker-buffer)
 	  (goto-char marker-point)))
+    (set-marker marker nil)
     ))
 
 (defun rscope-interactive (prompt-defvals-alist)
