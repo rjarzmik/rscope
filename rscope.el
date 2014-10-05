@@ -375,11 +375,12 @@ display it in the current window replacing the result buffer."
 display it in the other window, and bury the result buffer."
   (interactive)
   (let* ((result-buffer (current-buffer))
-	 (buffer (apply 'rscope-display-file-line
-			(append (rscope-get-relative-entry result-buffer 0) '(t t)))))
-    (quit-window nil (get-buffer-window result-buffer))
-    (rscope-clear-previewed-buffers result-buffer buffer)
-    ))
+	 (result-window (get-buffer-window result-buffer))
+	 buffer)
+    (and result-window (quit-window nil result-window))
+    (setq buffer (apply 'rscope-display-file-line
+			(append (rscope-get-relative-entry result-buffer 0) '(t t))))
+    (rscope-clear-previewed-buffers result-buffer buffer)))
 
 (defun rscope-preview-entry-other-window ()
   "Preview the entry in another window, without loosing selection, and
