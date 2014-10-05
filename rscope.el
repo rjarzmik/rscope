@@ -376,10 +376,12 @@ display it in the other window, and bury the result buffer."
   (interactive)
   (let* ((result-buffer (current-buffer))
 	 (result-window (get-buffer-window result-buffer))
+	 (dd default-directory)
 	 buffer)
     (and result-window (quit-window nil result-window))
-    (setq buffer (apply 'rscope-display-file-line
-			(append (rscope-get-relative-entry result-buffer 0) '(t t))))
+    (let ((default-directory dd))
+      (setq buffer (apply 'rscope-display-file-line
+			  (append (rscope-get-relative-entry result-buffer 0) '(t t)))))
     (rscope-clear-previewed-buffers result-buffer buffer)))
 
 (defun rscope-preview-entry-other-window ()
