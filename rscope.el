@@ -831,7 +831,10 @@ call organizer to handle them within resultbuf."
 	(tramp-file
 	 (when (tramp-tramp-file-p default-directory)
 	   (with-parsed-tramp-file-name default-directory tp
-	     (tramp-make-tramp-file-name tp-method tp-user tp-host file)))))
+	     (tramp-make-tramp-file-name tp-method tp-user tp-host
+					 (if (file-name-absolute-p file)
+					     file
+					   (concat tp-localname file)))))))
     (with-current-buffer (get-buffer-create buf)
       ;; Find the file in buf if already present
       (goto-char (point-min))
@@ -857,7 +860,10 @@ call organizer to handle them within resultbuf."
 	(tramp-file
 	 (when (tramp-tramp-file-p default-directory)
 	   (with-parsed-tramp-file-name default-directory tp
-	     (tramp-make-tramp-file-name tp-method tp-user tp-host file)))))
+	     (tramp-make-tramp-file-name tp-method tp-user tp-host
+					 (if (file-name-absolute-p file)
+					     file
+					   (concat tp-localname file)))))))
     (with-current-buffer buf
       (rscope-results-insert-function function-name rscope-level line-number content
 				      (or tramp-file file) t))))
