@@ -677,8 +677,9 @@ Only consider *.c and *.h files."
 	  (process-file-shell-command
 	   (format "find -name '*.[ch]' -o -name '*.cpp' > cscope.files && cscope -b -q %s"
 		   (concat args)))))
-    (when (and (numberp exit-code) (= 0 exit-code))
-      (concat dir "/"))))
+    (if (and (numberp exit-code) (= 0 exit-code))
+	(concat dir "/")
+      (error "Cscope database generation failed, exit code=%d." exit-code))))
 
 (defun rscope-autoinit-path-upwards-cscope_out (buffer)
   "Look the directory tree upwards, and report the first directory containing
