@@ -76,6 +76,7 @@
 ;; http://www.fsf.org/copyleft/gpl.html
 
 (require 'outline nil t)
+(require 'tramp)
 
 (defgroup rscope nil
   "Cscope interface for (X)Emacs.
