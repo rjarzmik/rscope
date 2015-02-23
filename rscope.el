@@ -313,6 +313,7 @@ The first hook returning a non nil value wins.")
     (setq old-buffer-killable
 	  (and (with-current-buffer old-buffer
 		 (and (boundp 'rscope-auto-open) rscope-auto-open))
+	       (not (equal marker-buffer old-buffer))
 	       (not (rscope-ring-bufferp old-buffer))))
     
     (if marker-buffer
