@@ -32,6 +32,7 @@ All keybindings use the "C-c s" prefix:
  | C-c s t | Find text string.                                              |
  | C-c s f | Find a file.                                                   |
  | C-c s h | Find calling hierarchy of a function                           |
+ | C-c s n | Open rscope navigation tool                                    |
 
 ** The *Result* buffer keys
  - Normal keystrokes :
@@ -43,6 +44,22 @@ All keybindings use the "C-c s" prefix:
    - Use SPACE to preview an entry
    - Use Ctr-ENTER to bury result buffer, and replace it by the selected entry
    - Use number <N> to develop current leaf's subtree up to Nth level
+
+** The rscope-nav tool
+   rscope-nav-mode is a major mode to help viewing and manipulating
+   rscope marker ring.
+   It displays rscope markers from the newest to
+   the oldest and provides the following bindings:
+ | n           | Next entry                                                         |
+ | p           | Previous entry                                                     |
+ | q           | Quit window                                                        |
+ | g           | Refresh                                                            |
+ | k           | Kill current entry                                                 |
+ | K           | Flush marker ring                                                  |
+ | s           | Set current entry as the newest one. All newer entries are deleted |
+ | ENTER       | Goto current entry                                                 |
+ | Shift-ENTER | Goto current entry in the same window                              |
+ | SPACE       | Preview current entry                                              |
 
 * Goal
 It is born to challenge its cousins :
