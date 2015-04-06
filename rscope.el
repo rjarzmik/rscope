@@ -219,6 +219,9 @@ The first hook returning a non nil value wins.")
     (define-key 'rscope:map "n" 'rscope-nav)
     )
 
+(defvar rscope-init-buffers nil
+  "List of buffers created by rscope-init")
+
 (defvar preview-buffers)
 (defvar preview-already-opened-buffers)
 (defvar rscope-level)
@@ -234,6 +237,7 @@ The first hook returning a non nil value wins.")
 	 (buffer-name (format "*rscope-%s*" dir))
 	 (rscope-buffer (get-buffer-create buffer-name))
 	 process)
+    (add-to-list 'rscope-init-buffers rscope-buffer)
     (with-current-buffer rscope-buffer
       (if (get-buffer-process buffer-name)
 	  (kill-process (get-buffer-process buffer-name)))
@@ -577,8 +581,10 @@ Returns the buffer containing the file."
 	(mapcar (lambda (x) (when (string-prefix-p prefix x) x)) list)))
 
 (defun rscope-get-cscope-buffers ()
-  (get-strings-prefixed-by "*rscope-"
-			   (mapcar (function buffer-name) (buffer-list))))
+  "Return rscope-init-buffers after having removed all killed buffers"
+  (setq rscope-init-buffers
+	(delq nil (mapcar (lambda(buf)(and (buffer-live-p buf) buf))
+			  rscope-init-buffers))))
 
 (defun rscope-find-cscope-process (buffer)
   "Find the initialized (through rscope-init) cscope buffer for buffer.
@@ -593,14 +599,14 @@ use it."
     (setq exact-match
 	  (car (delq nil (mapcar (lambda(buf)
 				   (when (string-prefix-p
-					  (expand-file-name (buffer-local-value 'default-directory (get-buffer buf)))
+					  (expand-file-name (buffer-local-value 'default-directory buf))
 					  (expand-file-name (buffer-local-value 'default-directory (get-buffer buffer))))
-				     buf))
+				     (buffer-name buf)))
 				 rscope-buffers))))
     (cond
      (exact-match exact-match)
      ((setq exact-match (rscope-find-cscope-process-run-hooks buffer)) exact-match)
-     ((= 1 (length rscope-buffers)) (car rscope-buffers))
+     ((= 1 (length rscope-buffers)) (buffer-name (car rscope-buffers)))
      ((error "No rscope initialized found, did you call rscope-init ?")))))
 
 (defun rscope-find-cscope-process-run-hooks (buffer)
