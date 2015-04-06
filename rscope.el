@@ -77,6 +77,7 @@
 
 (require 'outline nil t)
 (require 'tramp)
+(require 'rscope-nav)
 
 (defgroup rscope nil
   "Cscope interface for (X)Emacs.
@@ -168,6 +169,7 @@ Must end with a newline.")
     nil
   (setq rscope-list-entry-keymap (make-keymap))
   (suppress-keymap rscope-list-entry-keymap)
+  (define-key rscope-list-entry-keymap "N" 'rscope-nav)
   (define-key rscope-list-entry-keymap "n" 'rscope-next-symbol)
   (define-key rscope-list-entry-keymap "p" 'rscope-prev-symbol)
   (define-key rscope-list-entry-keymap "q" 'rscope-close-results)
@@ -214,6 +216,7 @@ The first hook returning a non nil value wins.")
     (define-key 'rscope:map "t" 'rscope-find-this-text-string)
     (define-key 'rscope:map "i" 'rscope-find-files-including-file)
     (define-key 'rscope:map "h" 'rscope-find-calling-hierarchy)
+    (define-key 'rscope:map "n" 'rscope-nav)
     )
 
 (defvar preview-buffers)
@@ -315,7 +318,7 @@ The first hook returning a non nil value wins.")
 		 (and (boundp 'rscope-auto-open) rscope-auto-open))
 	       (not (equal marker-buffer old-buffer))
 	       (not (rscope-ring-bufferp old-buffer))))
-    
+
     (if marker-buffer
 	(progn
 	  (when old-buffer-killable (kill-buffer old-buffer))
@@ -823,7 +826,7 @@ call organizer to handle them within resultbuf."
 	       (propertize function-name 'face 'rscope-function-face)
 	       "() ["
 	       (when write-file-p
-		 (concat 
+		 (concat
 		  (propertize displayed-file-name 'face 'rscope-file-face)
 		  ":"))
 	       (propertize (number-to-string line-number) 'face 'rscope-line-number-face)
@@ -847,7 +850,7 @@ call organizer to handle them within resultbuf."
       (goto-char (point-min))
       (setq found (re-search-forward (format "^\* %s" file) nil t))
       (forward-line +0)
-      
+
       ;;; If found the file, move to the next line, beggining of line
       ;;; Else insert the new filename
       (unless found
@@ -930,4 +933,3 @@ call organizer to handle them within resultbuf."
 
 (provide 'rscope)
 ;;; rscope.el ends here
-
