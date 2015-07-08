@@ -117,6 +117,12 @@ as would have been gotten by using unix basename."
   :type 'string
   :group 'rscope)
 
+(defcustom rscope-keymap-prefix (kbd "C-c s")
+  "Rscope keymap prefix"
+  :type 'string
+  :group 'rscope
+)
+
 (defface rscope-file-face
   '((((class color) (background dark))
      (:foreground "yellow"))
@@ -918,7 +924,7 @@ call organizer to handle them within resultbuf."
 ;; Rscope minor mode hook: provides rscope:keymap for key shortcuts
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun rscope:hook ()
-  (global-set-key (kbd "\C-cs") 'rscope:map))
+  (global-set-key rscope-keymap-prefix 'rscope:map))
 
 (add-hook 'c-mode-hook (function rscope:hook))
 (add-hook 'c++-mode-hook (function rscope:hook))
