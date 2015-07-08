@@ -626,7 +626,7 @@ The first hook returning non nil wins."
       (setq file-name (nth 0 l))
       (setq line-number (nth 1 l))
       (if (and file-name line-number)
-	  (rscope-select-entry-other-window)
+	  (rscope-select-entry-current-window)
 	(error "No cscope unique entry found, that's abnormal")))))
 
 (defun rscope-handle-query (query)
@@ -643,7 +643,7 @@ The first hook returning non nil wins."
 				      result-buf 'rscope-results-organize-filename)
 	  (when (>= nb-results 1)
 	    (ring-insert rscope-marker-ring (point-marker)))
-	  (rscope-finish-result-buffer result-buf)
+	  (rscope-finish-result-buffer result-buf (= 1 nb-results))
 	  (when (= 1 nb-results) (rscope-select-unique-result))))))
 
 (defun rscope-handle-query-call-hierarchy (function-name levels)
@@ -904,12 +904,12 @@ call organizer to handle them within resultbuf."
       (insert rscope-separator-line "\n"))
     result-buf))
 
-(defun rscope-finish-result-buffer (result-buf)
+(defun rscope-finish-result-buffer (result-buf &optional nodisplay)
   (with-current-buffer result-buf
     (goto-char (point-max))
     (insert rscope-separator-line "\n")
     (insert "Search complete.")
-    (pop-to-buffer result-buf)
+    (unless nodisplay (pop-to-buffer result-buf))
     (goto-char (point-min))
     (rscope-get-relative-entry (current-buffer) +1)
     (rscope-list-entry-mode)))
