@@ -904,7 +904,7 @@ call organizer to handle them within resultbuf."
       (setq preview-buffers '()
 	    preview-already-opened-buffers '())
       (setq default-directory
-	    (buffer-local-value 'default-directory (get-buffer  procbuf)))
+	    (buffer-local-value 'default-directory (get-buffer procbuf)))
       (setq proc-buffer procbuf)
       (when header
 	(insert header "\n"))
