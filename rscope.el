@@ -183,7 +183,6 @@ Must end with a newline.")
   (define-key rscope-list-entry-keymap " " 'rscope-preview-entry-other-window)
   (define-key rscope-list-entry-keymap (kbd "RET") 'rscope-select-entry-other-window)
   (define-key rscope-list-entry-keymap (kbd "S-<return>") 'rscope-select-entry-current-window)
-  (define-key rscope-list-entry-keymap "R" 'rscope-regenerate-database)
   (when (featurep 'outline)
     (define-key rscope-list-entry-keymap "0" (lambda() (interactive) (show-all)))
     (define-key rscope-list-entry-keymap "1" (lambda() (interactive) (hide-sublevels 1)))
@@ -224,6 +223,7 @@ The first hook returning a non nil value wins.")
     (define-key 'rscope:map "i" 'rscope-find-files-including-file)
     (define-key 'rscope:map "h" 'rscope-find-calling-hierarchy)
     (define-key 'rscope:map "n" 'rscope-nav)
+    (define-key 'rscope:map "R" 'rscope-regenerate-database)
     )
 
 (defvar rscope-init-buffers nil
@@ -436,12 +436,14 @@ with an optionnal arrow to show what was found."
 (defun rscope-regenerate-database ()
   "Regenerate the cscope database."
   (interactive)
-  (let* ((result-buffer (current-buffer))
-	 (dir (buffer-local-value 'default-directory result-buffer))
-	 (procbuf (buffer-local-value 'proc-buffer result-buffer)))
-    (rscope-regenerate-cscope-database dir)
-    (kill-buffer result-buffer)
-    (kill-buffer procbuf)))
+  (let* ((result-buffer (get-buffer rscope-output-buffer-name))
+	 (procbuf (get-buffer (rscope-find-cscope-process (current-buffer))))
+	 (dir (buffer-local-value 'default-directory procbuf)))
+    (when procbuf
+      (rscope-regenerate-cscope-database dir)
+      (kill-buffer procbuf))
+    (when result-buffer
+      (kill-buffer result-buffer))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Result buffer helpers: internal navigation, buffer spawning
