@@ -724,6 +724,11 @@ a file named configure.ac."
 	(setq dir (file-name-directory (directory-file-name dir)))))
     found))
 
+(defun rscope-make-tramp-file-name (method user host localname &optional hop)
+  (cond ((string-version-lessp emacs-version "26.0.90")
+	 (tramp-make-tramp-file-name method user host localname hop))
+	((tramp-make-tramp-file-name method user nil host nil localname hop))))
+
 ;; Advanced cscope.out generator looking for git toplevel tree
 (defun rscope-autoinit-git-toplevel (buffer)
   "If in a git tree, generate the cscope database at git toplevel."
@@ -733,7 +738,7 @@ a file named configure.ac."
 	(tramp-vec))
     (when (and (featurep 'tramp) (tramp-tramp-file-p default-directory))
       (setq tramp-vec (tramp-dissect-file-name default-directory))
-      (setq toplevel (tramp-make-tramp-file-name
+      (setq toplevel (rscope-make-tramp-file-name
 		      (tramp-file-name-method tramp-vec)
 		      (tramp-file-name-user tramp-vec)
 		      (tramp-file-name-host tramp-vec)
@@ -856,10 +861,10 @@ call organizer to handle them within resultbuf."
 	(tramp-file
 	 (when (tramp-tramp-file-p default-directory)
 	   (with-parsed-tramp-file-name default-directory tp
-	     (tramp-make-tramp-file-name tp-method tp-user tp-host
-					 (if (file-name-absolute-p file)
-					     file
-					   (concat tp-localname file)))))))
+	     (rscope-make-tramp-file-name tp-method tp-user tp-host
+					  (if (file-name-absolute-p file)
+					      file
+					    (concat tp-localname file)))))))
     (with-current-buffer (get-buffer-create buf)
       ;; Find the file in buf if already present
       (goto-char (point-min))
@@ -885,10 +890,10 @@ call organizer to handle them within resultbuf."
 	(tramp-file
 	 (when (tramp-tramp-file-p default-directory)
 	   (with-parsed-tramp-file-name default-directory tp
-	     (tramp-make-tramp-file-name tp-method tp-user tp-host
-					 (if (file-name-absolute-p file)
-					     file
-					   (concat tp-localname file)))))))
+	     (rscope-make-tramp-file-name tp-method tp-user tp-host
+					  (if (file-name-absolute-p file)
+					      file
+					    (concat tp-localname file)))))))
     (with-current-buffer buf
       (rscope-results-insert-function function-name rscope-level line-number content
 				      (or tramp-file file) t))))
