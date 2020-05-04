@@ -725,7 +725,7 @@ a file named configure.ac."
     found))
 
 (defun rscope-make-tramp-file-name (method user host localname &optional hop)
-  (cond ((string-version-lessp emacs-version "26.0.90")
+  (cond ((string< emacs-version "26.0.90")
 	 (tramp-make-tramp-file-name method user host localname hop))
 	((tramp-make-tramp-file-name method user nil host nil localname hop))))
 
