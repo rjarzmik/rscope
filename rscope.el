@@ -124,6 +124,11 @@ as would have been gotten by using unix basename."
   :group 'rscope
 )
 
+(defcustom rscope-auto-reinit nil
+  "Automatically run `rscope-init' when the process cscope died."
+  :type 'boolean
+  :group 'rscope)
+
 (defface rscope-file-face
   '((((class color) (background dark))
      (:foreground "yellow"))
@@ -638,10 +643,18 @@ The first hook returning non nil wins."
 	  (rscope-select-entry-current-window)
 	(error "No cscope unique entry found, that's abnormal")))))
 
+(defun rscope-check-process-and-init (buf)
+  (with-current-buffer buf
+    (unless (get-buffer-process buf)
+      (when (or rscope-auto-reinit
+		(y-or-n-p "The cscope process died, would you like to run rscope-init ?"))
+	(rscope-init default-directory)))))
+
 (defun rscope-handle-query (query)
   "Launch the query in the rscope process."
   (let (nb-results result-buf
 		   (rscope-process (rscope-find-cscope-process (current-buffer))))
+    (rscope-check-process-and-init rscope-process)
     (setq result-buf
 	  (rscope-create-result-buffer rscope-action-message rscope-process))
     (when rscope-process
@@ -659,6 +672,7 @@ The first hook returning non nil wins."
   "Launch the query to get a calling hierarchy in rscope process."
   (let (result-buf regexp found nb-lines
 		   (rscope-process (rscope-find-cscope-process (current-buffer))))
+    (rscope-check-process-and-init rscope-process)
     (when rscope-process
 	(progn
 	  (setq result-buf (rscope-create-result-buffer
