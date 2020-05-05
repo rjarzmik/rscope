@@ -42,7 +42,7 @@ All keybindings use the "C-c s" prefix:
    - Use "q" to bury result buffer and switch to other window.
  - Advanced keystrokes:
    - Use SPACE to preview an entry
-   - Use Ctr-ENTER to bury result buffer, and replace it by the selected entry
+   - Use S-ENTER to bury result buffer, and replace it by the selected entry
    - Use number <N> to develop current leaf's subtree up to Nth level
 
 ** The rscope-nav tool
