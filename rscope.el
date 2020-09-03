@@ -38,11 +38,12 @@
 ;;     Use "+" to expand a collapsed tree
 ;;     Use "-" to collapse a tree
 
-;; Available global commands (bound by default to C-c s [gstCcia])
+;; Available global commands (bound by default to C-c s [gstfCcia])
 ;;
 ;; M-x rscope-find-global-definition
 ;; M-x rscope-find-this-symbol
 ;; M-x rscope-find-this-text-string
+;; M-x rscope-find-this-file
 ;; M-x rscope-find-functions-calling-this-function
 ;; M-x rscope-find-called-functions
 ;; M-x rscope-find-files-including-file
@@ -225,6 +226,7 @@ The first hook returning a non nil value wins.")
     (define-key 'rscope:map "c" 'rscope-find-functions-calling-this-function)
     (define-key 'rscope:map "C" 'rscope-find-called-functions)
     (define-key 'rscope:map "t" 'rscope-find-this-text-string)
+    (define-key 'rscope:map "f" 'rscope-find-this-file)
     (define-key 'rscope:map "i" 'rscope-find-files-including-file)
     (define-key 'rscope:map "h" 'rscope-find-calling-hierarchy)
     (define-key 'rscope:map "n" 'rscope-nav)
@@ -298,6 +300,12 @@ The first hook returning a non nil value wins.")
   (interactive (rscope-interactive
 		(list (cons "Find this text string: " (current-word)))))
   (rscope-handle-query (concat "4" symbol "\n")))
+
+(defun rscope-find-this-file (symbol)
+  "Locate a file."
+  (interactive (rscope-interactive
+		(list (cons "Find this file name: " (current-word)))))
+  (rscope-handle-query (concat "7" symbol "\n")))
 
 (defun rscope-find-files-including-file (symbol)
   "Locate all files #including a file."
