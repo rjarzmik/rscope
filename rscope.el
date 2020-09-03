@@ -295,7 +295,7 @@ The first hook returning a non nil value wins.")
 (defun rscope-find-functions-calling-this-function (symbol)
   "Display functions calling a function."
   (interactive (rscope-interactive
-		(list (cons "Find functions calling by this function: " (current-word)))))
+		(list (cons "Find functions calling this function: " (current-word)))))
   (rscope-handle-query (concat "3" symbol "\n")))
 
 (defun rscope-find-this-text-string (symbol)
