@@ -230,6 +230,7 @@ The first hook returning a non nil value wins.")
     (define-key 'rscope:map "i" 'rscope-find-files-including-file)
     (define-key 'rscope:map "h" 'rscope-find-calling-hierarchy)
     (define-key 'rscope:map "n" 'rscope-nav)
+    (define-key 'rscope:map "p" 'rscope-pop-mark)
     (define-key 'rscope:map "R" 'rscope-regenerate-database)
     )
 
