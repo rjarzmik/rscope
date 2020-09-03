@@ -242,6 +242,9 @@ The first hook returning a non nil value wins.")
 (defvar rscope-auto-open)
 (defvar proc-buffer)
 
+(defvar rscope-database-name "cscope.out"
+  "Name of the cscope database, relative to the toplevel directory")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; High-level user usable functions (init + queries)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -257,7 +260,7 @@ The first hook returning a non nil value wins.")
 	  (kill-process (get-buffer-process buffer-name)))
       (setq default-directory dir)
       (setq process (start-file-process buffer-name buffer-name
-				   "cscope" "-ld" "-f" "cscope.out"))
+				   "cscope" "-ld" "-f" rscope-database-name))
       (set-process-filter process 'rscope-filter)
       (set-process-query-on-exit-flag process nil)
       (accept-process-output process 3)
@@ -717,7 +720,8 @@ Only consider *.c and *.h files."
   (let* ((default-directory (if (string-suffix-p "/" dir) dir (concat dir "/")))
 	 (exit-code
 	  (process-file-shell-command
-	   (format "find -name '*.[ch]' -o -name '*.cpp' > cscope.files && cscope -b -q %s"
+	   (format "find -name '*.[ch]' -o -name '*.cpp' > cscope.files && cscope -b -q -f %s %s"
+                   (concat default-directory rscope-database-name)
 		   (concat args)))))
     (if (and (numberp exit-code) (= 0 exit-code))
 	(concat dir "/")
@@ -725,11 +729,11 @@ Only consider *.c and *.h files."
 
 (defun rscope-autoinit-path-upwards-cscope_out (buffer)
   "Look the directory tree upwards, and report the first directory containing
-a file named cscope.out."
+a database file as named by rscope-database-name."
   (let (found old-dir (dir (buffer-local-value 'default-directory buffer)))
     (while (and dir (not found) (not (string= old-dir dir)))
       (setq old-dir dir)
-      (if (file-readable-p (concat dir "cscope.out"))
+      (if (file-readable-p (concat dir rscope-database-name))
 	  (setq found dir)
 	(setq dir (file-name-directory (directory-file-name dir)))))
     found))
