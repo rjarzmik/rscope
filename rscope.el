@@ -78,7 +78,7 @@
 (require 'outline nil t)
 (require 'tramp)
 (require 'rscope-nav)
-(require 'cl)
+(require 'cl-lib)
 
 (defgroup rscope nil
   "Cscope interface for (X)Emacs.
