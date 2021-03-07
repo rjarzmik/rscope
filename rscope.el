@@ -509,7 +509,7 @@ The spared buffers are cleaned of his arrow."
     (delete-dups all-buffers)
     (delete-dups spared-buffers)
 
-    (setq die-buffers (set-difference all-buffers spared-buffers))
+    (setq die-buffers (cl-set-difference all-buffers spared-buffers))
     (dolist (buffer die-buffers)
       (when (buffer-live-p buffer) (kill-buffer buffer)))
     (dolist (buffer spared-buffers)
