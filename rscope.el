@@ -721,7 +721,7 @@ Only consider *.c and *.h files."
   (let* ((default-directory (if (string-suffix-p "/" dir) dir (concat dir "/")))
 	 (exit-code
 	  (process-file-shell-command
-	   (format "find -name '*.[ch]' -o -name '*.cpp' > cscope.files && cscope -b -q -f %s %s"
+	   (format "find . -name '*.[ch]' -o -name '*.cpp' > cscope.files && cscope -b -q -f %s %s"
                    (concat default-directory rscope-database-name)
 		   (concat args)))))
     (if (and (numberp exit-code) (= 0 exit-code))
