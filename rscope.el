@@ -221,6 +221,7 @@ The first hook returning a non nil value wins.")
     (define-prefix-command 'rscope:map)
     ;; The following line corresponds to be beginning of the "Cscope" menu.
     (define-key 'rscope:map "s" 'rscope-find-this-symbol)
+    (define-key 'rscope:map "=" 'rscope-all-symbol-assignments)
     (define-key 'rscope:map "d" 'rscope-find-global-definition)
     (define-key 'rscope:map "g" 'rscope-find-global-definition)
     (define-key 'rscope:map "c" 'rscope-find-functions-calling-this-function)
@@ -320,8 +321,8 @@ The first hook returning a non nil value wins.")
 (defun rscope-all-symbol-assignments (symbol)
   "Find all the assignments of the symbol"
   (interactive (rscope-interactive
-		(list (cons "this don't work due to the bug of cscope, Find all assignments of symbol: " (current-word)))))
-  (rscope-handle-query (concat "10" symbol "\n")))
+		(list (cons "Find all assignments of symbol: " (current-word)))))
+  (rscope-handle-query (concat "9" symbol "\n")))
 
 (defun rscope-find-calling-hierarchy (symbol depth)
   "Find all functions calling a function, then functions calling these ones, etc ..."
