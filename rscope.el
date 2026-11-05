@@ -1,3 +1,4 @@
+;;; rscope.el --- Configuration Emacs -*- lexical-binding: t; -*-
 ;;; rscope.el --- Reborn cscope interface for emacs
 ;;
 ;; Copyright(c) 2014 Robert Jarzmik <robert.jarzmik@free.fr>

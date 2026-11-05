@@ -1,3 +1,4 @@
+;;; rscope-nav.el --- Configuration Emacs -*- lexical-binding: t; -*-
 ;;; rscope-nav.el --- Markers navigation tool for rscope
 ;;
 ;; Copyright(c) 2015 Sylvain Chouleur <sylvain.chouleur@gmail.com>
